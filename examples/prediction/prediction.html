@@ -4,34 +4,72 @@
 <meta charset='utf-8'>
 <script src="jquery-1.3.2.min.js"></script>
 <script src="../../build/polytron.js"></script>
+<script src="Chart.js"></script>
 <script src="PrepareData.js"></script>
+<script src="training.js"></script>
+<script src="test.js"></script>
 <title>prediction</title>
 <script type="text/javascript">
-var max = function(){
-    return Math.max.apply( Math, arguments[0]);
-};
-	 
-var min = function(){
-    return Math.min.apply( Math, arguments[0]);
-};
 
-var array_search=function( needle, haystack, strict ) {	
-	// Searches the array for a given value and returns the corresponding key if
-	// successful
-	// 
-	// +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-	var strict = !!strict;
-	for(var key in haystack){
-		if( (strict && haystack[key] === needle) || (!strict && haystack[key] == needle) ){
-			return key;
-		}
+function stop_test(){
+	$("#stop_test").hide();
+	$("#start_test").show();
+	$("#clear_test").show();
+clearInterval(window.Interval2);	
 	}
-	return false;
-}
+//----------------------------------------------------------------------
+function clear_test(){
+clearInterval(window.Interval1);	
+window.counter=0;
+window.index=0;
+window.IndexDellAll=window.myLine.datasets[0].points.length;
+window.Interval3=setInterval(function(){
+if(window.IndexDellAll<=0){	
+clearInterval(window.Interval3);
+$("#clear_index").html("&nbsp;");
+$("#clear_test").show();
+$("#start_test").show();
+}else{
+var n=1;
+while(n>0){	
+window.myLine.removeData();
+window.myLine.update();
+n--;
+window.IndexDellAll--;
+}	
+	$("#clear_index").html(window.IndexDellAll);
+	$("#clear_test").hide();
+	$("#start_test").hide();
+	}
 
+	},10);
+	}
+//----------------------------------------------------------------------
+function start_test(){
+	$("#stop_test").show();
+	$("#start_test").hide();
+	$("#clear_test").hide();
+stop_training();
+window.counter=0;
+window.index=0;
+
+window.Interval2 = setInterval(main_test,10);
 	
-	
-$(document).ready(function(){
+	}
+//----------------------------------------------------------------------
+
+function stop_training(){
+clearInterval(window.Interval1);
+$('#stop_training').hide();
+$('#start_training').show();	
+	}
+//----------------------------------------------------------------------
+function start_training(){
+window.Interval1=setInterval(main_training, 10);
+$('#start_training').hide();
+$('#stop_training').show();	
+						  }
+//----------------------------------------------------------------------						  
 var old_err_sum=99999;
 var err_sum=0;
 var timer=0;
@@ -41,156 +79,42 @@ dollar_ruble.y12toy13=[31.8729,31.6886,31.6807,31.5830,31.9344,31.5445,31.5428,3
 dollar_ruble.y13toy14=[30.3727,30.4215,30.3650,30.2537,30.2607,30.2556,30.3399,30.3431,30.2065,30.2970,30.1950,30.2292,30.1648,30.0451,30.0782,30.1513,30.0277,30.0161,29.9966,29.9251,30.1231,29.9598,30.0496,30.1575,30.1590,30.1713,30.0692,30.0773,30.1139,30.1258,30.1277,30.0502,30.2337,30.3596,30.3368,30.5889,30.6202,30.5124,30.6381,30.7870,30.6963,30.6214,30.7628,30.7576,30.7499,30.7209,30.7769,30.7196,30.8908,30.8285,30.9446,30.8923,30.9325,30.7585,30.8734,30.8630,30.9962,31.0834,31.1093,31.1178,31.3918,31.7203,31.6207,31.6144,31.2086,31.0036,30.8814,30.9308,31.3051,31.4512,31.2320,31.7151,31.4605,31.5664,31.6414,31.5917,31.3169,31.2196,31.2559,31.0433,31.0839,31.0789,31.0829,31.3777,31.2778,31.4281,31.4166,31.3931,31.3406,31.1770,31.2280,31.4711,31.3164,31.3025,31.3784,31.5203,31.5893,31.7979,32.0487,31.8344,31.9816,32.1385,32.2397,32.3246,32.3951,32.3467,31.8029,31.6790,31.8824,32.1201,32.7041,32.7433,32.9097,32.7140,32.8876,32.8766,32.7090,32.8517,32.9475,33.2204,33.1605,33.2247,33.3210,33.0842,32.9112,32.5867,32.6429,32.6220,32.5417,32.4526,32.3998,32.4288,32.3236,32.3106,32.3462,32.5376,32.6371,32.8556,32.8901,33.0330,32.9741,33.0978,32.8811,32.9390,32.9848,32.9401,32.8606,32.8910,33.0426,33.1583,33.0004,32.9421,32.9226,33.0006,32.9737,33.1908,33.0552,32.9564,33.1224,33.1798,33.1783,33.2474,33.2522,33.3693,33.4656,33.3901,33.4338,33.3243,33.0600,32.9629,32.6731,32.7406,32.2907,32.3237,32.2450,31.5892,31.7326,31.9106,31.8167,31.9343,32.1736,32.3451,32.4839,32.2965,32.2979,32.1250,32.1005,32.2931,32.2984,32.3619,32.3564,32.2133,32.2663,32.2676,32.2561,32.0816,31.8460,31.9013,31.9346,31.7448,31.6618,31.6775,31.8119,31.9445,32.0613,32.0758,32.1808,32.3509,32.4511,32.3803,32.5479,32.6622,32.8076,32.8184,32.6874,32.6807,32.5658,32.6098,32.7417,33.0180,32.9055,32.7733,32.9879,33.0041,33.1332,33.1916,33.1482,33.2460,33.2632,33.1140,32.9514,32.7782,32.7848,32.7315,32.7518,32.8663,32.8658,32.8646,32.9404,32.9527,32.9798,32.9506,32.6284,32.6487,32.6710,32.6282,32.7292,32.6587,33.1547,33.2062,33.1204,33.2386,33.3562,33.4013,33.4343,33.6429,33.8161,33.8688,34.0334,34.2600,34.7093,34.6250,34.5633,35.2448,35.1800,35.2347,35.4502,34.9592,34.7287,34.6044,34.7636,34.7964,34.7595,34.8611,35.2559,35.0976,35.2386,35.5857,35.7670,35.6828,35.5112,35.5669,35.7872,36.0501,36.1847,36.3784,36.3208,36.0849,36.1251,36.2618,36.4015,36.4865,36.4566,36.6391,36.6505,36.4487,36.2070,36.1081,36.4022,36.1663,35.9316,35.4494,35.5810,35.6871,35.6053,35.0240,35.2517,35.5154,35.5010,35.4679,35.5475,35.7493,35.5581,35.6239,35.9890,35.9635,36.0813,35.9287,35.5389,35.6688,35.6785,35.6625,35.6830,35.9289,36.0245,35.6983,35.7227,35.8381,35.6550,35.4971,35.0343,35.2091,34.8789,34.7090,34.7005,34.7794,34.7394,34.6007,34.5078,34.2802,34.3139,34.0771,34.2571,34.4895,34.6481,34.7352,34.8887,35.0115,35.1398,34.9043,34.6573,34.3303,34.3681,34.3227,34.5654,34.8095,34.8232,34.3025,34.4190,34.2797,33.9812,33.9070,33.7508,33.6306,33.8434,34.2275,34.2496,34.1949,34.3236,34.5691,34.4258,34.0758,33.8353,34.0582,34.3135,34.3723,34.3853,34.7998,35.1627,35.0900,35.0387,34.8101,35.0786,35.0535,35.3457,35.6339,35.7271,35.4438,35.7272,35.6605,35.7987,36.1102,36.2496,36.4461,36.0475,36.0890,36.2222,36.0395,36.0014,36.0294,36.1094,36.2240,36.3317,36.0027,36.1201,36.1358,36.1397,36.3053,36.9316,37.2945,37.3480,37.3183,36.8038,36.9219,37.0866,37.0261,37.1693,37.3758,37.6545,37.9861,38.7058,38.3724,38.4209,38.4134,38.5782,38.6672,38.3830,38.3007,38.7243,39.3866,39.3836,39.6604,39.5474,39.6980,39.9820,39.7417,39.9819,39.9800,40.2125,40.3251,40.5304,40.9416,40.7457,41.0450,40.8815,41.0501,40.9671,41.4958,41.8101,41.9497,42.3934,42.6525,43.3943,41.9627,44.3993,45.1854,47.8774,45.8926,45.9520,46.3379,46.1233,47.3920,47.3329,46.9797,47.0294,46.7047,45.7926,44.7852,44.9758,46.4244,47.6629,49.3220,51.8068,50.7678,54.3821,52.6932,53.1088,53.3079,54.2116,54.2758,54.7932,56.8919,58.3461,61.1512,67.7851,59.6029,60.6825,60.6825,56.4940,54.5687,54.4913,52.6159,52.0343,56.6801,56.2584];
 dollar_ruble.y14toy15=[32.6587,33.1547,33.2062,33.1204,33.2386,33.3562,33.4013,33.4343,33.6429,33.8161,33.8688,34.0334,34.2600,34.7093,34.6250,34.5633,35.2448,35.1800,35.2347,35.4502,34.9592,34.7287,34.6044,34.7636,34.7964,34.7595,34.8611,35.2559,35.0976,35.2386,35.5857,35.7670,35.6828,35.5112,35.5669,35.7872,36.0501,36.1847,36.3784,36.3208,36.0849,36.1251,36.2618,36.4015,36.4865,36.4566,36.6391,36.6505,36.4487,36.2070,36.1081,36.4022,36.1663,35.9316,35.4494,35.5810,35.6871,35.6053,35.0240,35.2517,35.5154,35.5010,35.4679,35.5475,35.7493,35.5581,35.6239,35.9890,35.9635,36.0813,35.9287,35.5389,35.6688,35.6785,35.6625,35.6830,35.9289,36.0245,35.6983,35.7227,35.8381,35.6550,35.4971,35.0343,35.2091,34.8789,34.7090,34.7005,34.7794,34.7394,34.6007,34.5078,34.2802,34.3139,34.0771,34.2571,34.4895,34.6481,34.7352,34.8887,35.0115,35.1398,34.9043,34.6573,34.3303,34.3681,34.3227,34.5654,34.8095,34.8232,34.3025,34.4190,34.2797,33.9812,33.9070,33.7508,33.6306,33.8434,34.2275,34.2496,34.1949,34.3236,34.5691,34.4258,34.0758,33.8353,34.0582,34.3135,34.3723,34.3853,34.7998,35.1627,35.0900,35.0387,34.8101,35.0786,35.0535,35.3457,35.6339,35.7271,35.4438,35.7272,35.6605,35.7987,36.1102,36.2496,36.4461,36.0475,36.0890,36.2222,36.0395,36.0014,36.0294,36.1094,36.2240,36.3317,36.0027,36.1201,36.1358,36.1397,36.3053,36.9316,37.2945,37.3480,37.3183,36.8038,36.9219,37.0866,37.0261,37.1693,37.3758,37.6545,37.9861,38.7058,38.3724,38.4209,38.4134,38.5782,38.6672,38.3830,38.3007,38.7243,39.3866,39.3836,39.6604,39.5474,39.6980,39.9820,39.7417,39.9819,39.9800,40.2125,40.3251,40.5304,40.9416,40.7457,41.0450,40.8815,41.0501,40.9671,41.4958,41.8101,41.9497,42.3934,42.6525,43.3943,41.9627,44.3993,45.1854,47.8774,45.8926,45.9520,46.3379,46.1233,47.3920,47.3329,46.9797,47.0294,46.7047,45.7926,44.7852,44.9758,46.4244,47.6629,49.3220,51.8068,50.7678,54.3821,52.6932,53.1088,53.3079,54.2116,54.2758,54.7932,56.8919,58.3461,61.1512,67.7851,59.6029,60.6825,60.6825,56.4940,54.5687,54.4913,52.6159,52.0343,56.6801,56.2584,56.2376,62.7363,64.8425,66.0983,64.8337,65.1738,64.9732,64.9862,65.5558,65.4000,63.3930,65.5937,67.8153,67.1506,68.7303,68.9291,69.6640,67.7727,65.4470,68.6113,66.0432,65.7817,65.4469,66.0585,66.0994,65.0862,62.6632,62.8353,62.4001,62.1307,61.7235,63.5083,62.5906,60.7109,61.2718,62.2248,62.3649,61.8745,61.8457,59.9938,60.6649,62.6797,60.9595,61.3167,62.1497,61.7510,61.3483,59.8308,60.0341,59.4452,58.7710,57.3879,56.4271,57.7279,58.4643,57.6500,58.3536,56.9902,56.7534,56.5161,55.3328,54.0270,52.5424,51.0678,52.4220,51.9749,50.5033,49.6749,50.5295,51.5207,53.9728,53.6555,51.6011,50.2473,51.4690,52.3041,51.7029,51.1388,51.7574,49.9816,50.3615,50.7511,50.9140,49.5366,50.0774,50.0115,49.2175,49.1777,49.7919,49.9204,49.7901,49.8613,50.3223,51.0178,52.2907,52.9716,52.8213,53.4413,53.0590,54.9908,56.2463,56.0435,55.9100,54.8219,54.5285,55.2679,54.0409,53.8999,53.3301,53.8006,53.5569,54.2081,54.0746,54.6026,54.8126,55.5240,55.8413,55.4756,55.6555,55.6049,56.4112,57.2192,57.2174,56.9803,56.6685,56.6079,56.9774,56.6642,56.9504,56.8423,56.8336,57.0025,57.0232,57.3578,58.0374,58.7816,60.2231,59.7665,58.9906,60.3458,62.4677,62.9182,62.7184,63.8644,63.8399,64.4977,63.2098,65.0169,63.9988,64.9363,65.5034,65.8289,65.7222,66.9608,68.1216,70.7465,69.9461,69.3142,67.4473,66.4779,66.7152,65.3495,66.6756,67.0102,67.6850,68.4864,68.7932,67.6219,68.4961,68.0093,67.9571,67.1574,65.9273,65.3623,65.6445,66.1455,66.1747,66.0410,66.5151,65.6727,65.5470,66.2367,65.7364,65.0336,65.9414,65.6248,65.0962,62.7061,62.2942,61.2967,61.1535,62.2237,63.1248,62.2433,61.3587,61.4419,62.1620,62.6309,62.7888,61.9286,62.5038,63.5004,65.3159,64.1686,64.3742,63.7993,63.8525,63.3991,63.6832,64.6606,64.3908,64.5693,65.4541,66.6343,66.4607,65.4799,64.7785,64.9120,64.8673,65.5973,65.6210,65.4789,65.6836,66.2393,66.7370,66.2584,66.7402,67.7691,67.6698,68.5156,69.3026,69.2000,69.2151,69.1755,70.2244,70.8295,70.4012,70.5806,71.3215,71.2553,71.1211,70.9333,69.5165,70.2690,70.7865,72.5066,72.8827];
 
-window.Interval=setInterval(function() {
+$(document).ready(function(){
+window.Interval1=setInterval(main_training, 10);
 
+//view test net
+var ctx = document.getElementById("canvas").getContext("2d");
+window.myLine = new Chart(ctx).Line(lineChartData, {
+	 responsive: false,bezierCurve:false,
+	 datasetStrokeWidth:1,
+	 pointDotRadius:2
+	 });
+});	
 
-var layers=JSON.parse($("#template").val());
-var pd=new PrepareData();
-var nn=new Polytron(layers);
-var src=$("#memory").val();
-nn.load(src);
-
-var buffer='<pre>';
-var learnData=[];
-var targetData=[];
-var inplen=4;
-var minerror=0.5;
-var epoch=1;
-var data=[];
-var out=[];
-var tar=[];
-var sum=0;
-var err_arr=[];
-var okey=-1;
-var e=0; 
-var z=0; 
-var ekey=0;
-
-var arr=dollar_ruble.y12toy13;
-
-//----------------------------------------------------------------------
-
-for(var i=0;i<arr.length;i++){
-var inp=[];	
-for(var n=0;n<inplen;n++){	
-if(arr[i+n]){
-	if(arr[i+n]==''){break;}
-	inp[n]=parseFloat(arr[i+n]);
-	}
-}
-
-if(arr[i+n]){
-if(arr[i+n]==''){break;}	
-targetData[i]=[parseFloat(arr[i+n])];	
-	}else{
-break;		
-		}
-if(inplen==inp.length){learnData[i]=inp;}
-}
-
-
-learnData=pd.encode(learnData);
-targetData=pd.encode(targetData);
-
-var shuffle=function(o){ 
-    for(var j, x, k = o.length; k; j = Math.floor(Math.random() * k), x = o[--k], o[k] = o[j], o[j] = x);
-    return o;
-}
-
-for(var key in learnData){data[key]={'learn':learnData[key],'target':targetData[key]};}
-//data=shuffle(data);
-
-//----------------------------------------------------------------------
-
-	
-for (var e = 0; e < epoch; e++){
-	sum=0; z=0;
-for(var key in data){
-var o=nn.forward(data[key].learn);
-out[key]=pd.decode_one(o[0]).toFixed(4);
-tar[key]=pd.decode_one(data[key].target[0]).toFixed(4);
-err_sum+=parseFloat(Math.abs(data[key].target[0]-o[0]));
-err_arr[key]=parseFloat(Math.abs(tar[key]-out[key]));
-//buffer+=("i="+z+" | err="+(Math.abs(o[0]-data[key].target[0])).toFixed(12)+" | proc="+Math.round((sum / data.length) * 100)+"%|0="+out[key]+"|t="+tar[key]+" | ");
-//buffer+=("<br>");
-
-if(parseFloat(Math.abs(tar[key]-out[key]))<=minerror){
-sum++
-}else{z++;sum--; }
-nn.backward(data[key].learn,data[key].target);
-
- 
-						}
-
-
-								}
-								
-								
-buffer+=("examples count="+data.length+" | wrong answers="+z+"<br>");
-buffer+=("sum error="+err_sum+"|"+((err_sum>old_err_sum)?'<img src="arrow-up.png">':'<img src="arrow-down.png">')+"<br>");
-if((err_sum>=old_err_sum)){
-$("title").html('&#8593;|'+tproc+'|b:'+z+'|'+timer);	//up
-	}else{
-$("title").html('&#8595;|'+tproc+'|b:'+z+'|'+timer);	//down	
-		}
-	
-$("#memory").val(nn.toString()); //save memory
-
-if(err_sum!=old_err_sum){old_err_sum=err_sum;}
-err_sum=0;
-var mi=min(err_arr);
-var ma=max(err_arr);
-var minkey=array_search(mi,err_arr);
-var maxkey=array_search(ma,err_arr);
-
-buffer+=("err_min:|id="+minkey+"|out="+out[minkey]+"|tar="+tar[minkey]+"|err="+mi+"<br>");
-buffer+=("err_max:|id="+maxkey+"|out="+out[maxkey]+"|tar="+tar[maxkey]+"|err="+ma+"<br>");
-if(okey!=-1){
-buffer+=("ok:|0="+out[okey]+"|t="+tar[okey]+"<br>");	
-	}
-	
-
-sum=0;
-out=[];
-tar=[];
-for(var key in data){
-var o=nn.forward(data[key].learn);
-out[key]=pd.decode_one(o[0]).toFixed(4);
-tar[key]=pd.decode_one(data[key].target[0]).toFixed(4);
-if(parseFloat(Math.abs(tar[key]-out[key]))<=minerror){
-sum++
-}else{sum--;}
-}
-
-buffer+=("<b>Network is "+((sum / data.length) * 100).toFixed(3)+"% correct</b><br>");
-tproc=((sum / data.length) * 100).toFixed(3)+"%";
-
-buffer+=('</pre>');
-$("#out").html(buffer);
-$("#timer").html(timer);
-
-if(((sum / data.length) * 100).toFixed(3)==100){	
-clearInterval(window.Interval);
-}
-
-
-
-
-timer++;
-
-}, 0);
-});		   
 </script>
 </head>
 <body>
 	<h1>The forecast of the dollar against the ruble</h1>
 	<h2>Network training&nbsp;&nbsp;<img src="5.gif"></h2>
-<input type="button" value="stop" onClick="clearInterval(window.Interval);"><br>	
+<b style="color:red">I recommend testing in Google Chrome, other browsers really slows!!!</b><br>	
+Any parameters may be changed in real time.<br>
+changing the size of the first layer in a network pattern, re prepares the training set, the default input 4<hr>	
+<button id="stop_training" onClick="stop_training();">stop training</button>
+<button id="start_training" style="display:none;" onClick="start_training();">start training</button>
+&nbsp;|&nbsp;
+<select id="training_yer">
+	<option value="y12toy13">12-13 yer</option>
+	<option value="y13toy14">13-14 yer</option>
+	<option value="y14toy15">14-15 yer</option>
+</select>&nbsp;|&nbsp;
+minerror:<input name="minerror" id="minerror" value="0.5">&nbsp;|&nbsp;
+epoch:<input name="epoch" id="epoch" value="1">
+<br> 
 	<textarea id="template" style="width: 992px;height: 104px;">
 [
-{"size":4, "model":"input",  "rate":[0.0]  , "active":"none"},
-{"size":32, "model":"hidden", "rate":[0.001], "active":"relu","Xmax":200},
-{"size":1, "model":"output", "rate":[0.001], "active":"relu","Xmax":2}
+{"size":4, "rate":[0.0],  "active":"none"},
+{"size":6, "rate":[0.001], "active":"relu","Xmax":100},
+{"size":1, "rate":[0.001], "active":"relu","Xmax":1}
 ]	
 	</textarea>
 	<hr>
@@ -198,7 +122,29 @@ timer++;
 	<hr>
 	<div id="out"></div>
 	<hr>
-	memory:&nbsp;&nbsp;<textarea id="memory" style="width: 927px;height: 194px;"></textarea>
-	
+	memory:&nbsp;&nbsp;<br>
+	<textarea id="memory" style="width: 927px;height: 194px;"></textarea>
+<hr>
+<h2>Network test</h2>
+Before the test, it is desirable to clear the previous result
+<hr>
+<button id="start_test" onClick="start_test();">start test</button>
+<button id="stop_test" onClick="stop_test();" style="display:none;">stop test</button>&nbsp;|&nbsp;
+<button id="clear_test" onClick="clear_test()">clear test</button>&nbsp;|&nbsp;
+<select id="test_yer">
+	<option value="y12toy13">12-13 yer</option>
+	<option value="y13toy14">13-14 yer</option>
+	<option value="y14toy15">14-15 yer</option>
+</select>
+<div id="clear_index"></div>
+<br>
+<div style="color:red">red -> real</div>
+<div style="color:blue">blue -> forecast</div>
+		
+		<div style="width:100%; float:left">
+			<div>
+				<canvas id="canvas" width="1336" height="500"></canvas>
+			</div>
+		</div>	
 </body>
 </html>

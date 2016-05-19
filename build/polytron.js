@@ -1,3 +1,8 @@
+/**
+The MIT License (MIT)
+Copyright (c) 2016 S.S.Korotaev
+*/
+
 var util={};
 //----------------------------------------------------------------------
 util.end=function(arr){
@@ -16,6 +21,7 @@ if(varname==""){return true;}
 return false;	
 							};
 //----------------------------------------------------------------------
+					
 util.max=function(array,index){
    var out= Math.max.apply( Math, array );
 if(index){	
@@ -44,8 +50,13 @@ util.rand=function(mins, maxs){
 	};
 //----------------------------------------------------------------------
 this.util = util;
+/**
+The MIT License (MIT)
+Copyright (c) 2016 S.S.Korotaev
+*/
+
 function Polylayer(layers,layer){
-this.activations=['relu','log','abs','htan2','tanh','atan','sin','htan','gaus'];
+this.activations=['relu','log','abs','htan2','tanh','atan','sin','htan','asis','gaus'];
 //relu,htan2,atan,sin,htan,gaus !!! val not 0
 //log, abs,tanh -normal
 
@@ -61,7 +72,6 @@ this.s=layers[layer].size;
 this.validateActivation(layers);
 this.validateRate(layers);
 this.validateXmax(layers);
-
 
 	
 										 }
@@ -82,6 +92,7 @@ for(var i=0;i<this.s;i++){
 			}
 	}
 											}else{
+if(!util.isset(layers[this.layer].active)){layers[this.layer].active='none';}												
 if(layers[this.layer].active.length!=this.s){
 this.active=[];	
 for(var i=0;i<this.s;i++){ 
@@ -107,7 +118,7 @@ if(typeof(layers[this.layer].rate)==='number'){
 	this.rate=[];
 for(var i=0;i<this.s;i++){this.rate[i]=layers[this.layer].rate;}	
 										 }else{
-
+if(!util.isset(layers[this.layer].rate)){layers[this.layer].rate=0.0;}
 if(layers[this.layer].rate.length!=this.s){
 this.rate=[];	
 for(var i=0;i<this.s;i++){ 
@@ -158,10 +169,10 @@ this.Xmax=layers[this.layer].Xmax;
 	};										 
 
 //----------------------------------------------------------------------
-Polylayer.prototype.attribute=function(index){
-if(!this.active[index]){this.a='none';}else{this.a=this.active[index];}
-if(!this.rate[index]){this.r=0;}else{this.r=this.rate[index];}
-if(!this.Xmax[index]){this.x=1;}else{this.x=this.Xmax[index];}
+Polylayer.prototype.attribute=function(i){
+if(!this.active[i]){this.a='none';}else{this.a=this.active[i];}
+if(!this.rate[i]){this.r=0;}else{this.r=this.rate[i];}
+if(!this.Xmax[i]){this.x=1;}else{this.x=this.Xmax[i];}
 	};
 //----------------------------------------------------------------------
 Polylayer.prototype.prepare=function(input){
@@ -176,8 +187,7 @@ if(this.w.length>input.length){this.w.length=input.length;}
 var il=0;	
 for (var j = 0 ; j < this.s ; j++) {
 this.attribute(j);
-	il=input.length;
-for (var i = 0 ; i < il ; i++){						
+for (var i = 0 ; i < input.length ; i++){						
 if(!util.isset(this.w[i])){this.w[i]=[];}
 if(!util.isset(this.w[i][j])){this.w[i][j]=this.initw();}
 if(this.w[i].length>this.s){this.w[i].length=this.s;}
@@ -192,17 +202,6 @@ if(!util.isset(this.e[j])){this.e[j] = 0;}
 												 };
 //----------------------------------------------------------------------
 Polylayer.prototype.forward=function(input){
-switch(this.m){
-case 'maxout':{
- var max = input[0];
- this.o=0;
- var size=this.layers[this.layers.length-2].size;
-  for (var i = 1; i < size; i++){
-    if (input[i] > max) {max = input[i]; this.o = i;}
-																	}
-	break;
-				}
-default:{	
 var sum=0;	
 for (var j = 0 ; j < this.s ; j++){
 this.attribute(j);
@@ -211,23 +210,23 @@ this.attribute(j);
     sum += this.w[input.length][j];
     this.o[j] = this.differentiate(sum);
 									}	
-break;
-}
-				}
 												};
 
 //----------------------------------------------------------------------
-Polylayer.prototype.errorSum=function(res,target){
+Polylayer.prototype.error=function(res){
 
 switch(this.m){
-case 'maxout':{
-	break;
-}	
 case 'output':{
-  for (var o = 0 ; o < this.s ; o++) {//output  
+  for (var o = 0 ; o < this.s ; o++){//output  
 	this.attribute(o);
-    this.e[o] = (target[o] - this.o[o]) * this.derivatives(this.o[o]);
-														}
+	if(typeof(res)==="undefined"){
+    this.e[o] = (1.0 - this.o[o]) * this.derivatives(this.o[o]);
+    }else if(typeof(res)==="number"){
+	this.e[o] = (res - this.o[o]) * this.derivatives(this.o[o]);	
+		}else {		
+	this.e[o] = (res[o] - this.o[o]) * this.derivatives(this.o[o]);
+			  }
+									  }
 break;				
 			   }
 case 'hidden':{
@@ -253,9 +252,6 @@ var imax=util.max(this.e,true);
 var imin=util.min(this.e,true);
 if(this.e[imin]>0){imin=-1;}
 
-
-	switch(this.m){
-case 'output':case 'hidden':{	
 var r=0;	
 for (var o = 0 ; o < this.s ; o++){//output
 this.attribute(o);
@@ -266,13 +262,7 @@ for (var h = 0 ; h < res.s; h++){//hidden
 this.w[h][o] += (r * this.e[o] * res.o[h]);    
 								 }
 this.w[res.s][o] += (r * this.e[o]);
-
-    
 									}	
-break;
-}
-default:{break;}
-}	
 	};
 //----------------------------------------------------------------------
 Polylayer.prototype.initw=function(){
@@ -293,6 +283,7 @@ if(!leak){leak=0;}
 var out=0;
 switch(this.a){
 	case 'none':{break;}
+	case 'asis':{out=val;break;}
 	case 'log':{out=(1 / (1 + Math.exp(-val)));break;}
 	case 'abs':{out = (0.5 * (val / (1 + Math.abs(val))) + 0.5); break;}
 	case 'tanh':{out=((0.5* Math.tanh(val))+0.5); break;}
@@ -303,6 +294,7 @@ switch(this.a){
 	case 'htan2':{out=(Math.exp(val) - Math.exp(-val)) / (Math.exp(val) + Math.exp(-val));break;}
 	case 'relu':{if(val<0){out=0;}else{out=val;}break;} //Relu
 	case 'ramp':{if(val<0){out=(leak * val);}else{out=val;}break;} //Ramp
+	
 						}
 return out;	
 	
@@ -312,6 +304,8 @@ Polylayer.prototype.derivatives=function(val,leak){
 if(!leak){leak=0;}
 var out=0;
 switch(this.a){
+	case 'none':{break;}
+	case 'asis':{out=val;break;}
 	case 'log':	case 'abs':case 'tanh':{out=( val * (1 - val) );break;}
 	case 'htan':{var e=Math.exp(2 * val);out= (1 - Math.pow((e - 1) / (e + 1), 2));break;}
 	case 'sin':{out=(Math.cos(val));break;}
@@ -323,40 +317,23 @@ switch(this.a){
 						}	
 return out;	
 													};
-//----------------------------------------------------------------------
-//Polylayer.prototype.toJSON=function(){};
-//----------------------------------------------------------------------
-//Polylayer.prototype.fromJSON=function(){};
-//----------------------------------------------------------------------
 this.Polylayer = Polylayer;
-function Polytron(layers,defrate,defactie,defmodel,defrateMax,defrateMin){
-if(Object.prototype.toString.call(layers[0])==='[object Number]'){
-var nlayers=[];
-if(!defmodel){
-	defmodel=[];
+/**
+The MIT License (MIT)
+Copyright (c) 2016 S.S.Korotaev
+*/
+
+function Polytron(layers){
 for(var key in layers){
-	if(key==0){defmodel[key]='input';}else
-	if(key==layers.length-1){defmodel[key]='output';}else{
-	defmodel[key]='hidden';	
+	if(!util.isset(layers[key]['model'])){
+	if(key==0){layers[key]['model']='input';
+	}else
+	if(key==layers.length-1){layers[key]['model']='output';
+	}else{
+	layers[key]['model']='hidden';	
 		}
-	}
-}
-
-for(var key in layers){
-	nlayers[key]={};
-	nlayers[key].size=layers[key];
-	nlayers[key].model=defmodel[key];
-	
-if(typeof(defrate)==='number'){nlayers[key].rate=defrate;}else
-if(typeof(defrate)==='string'){
-	if(defrate=='auto'){nlayers[key].rate=defrate;nlayers[key].maxrate=defrateMax;nlayers[key].minrate=defrateMin;}
-	}else{nlayers[key].rate=defrate[key];}
-
-if(typeof(defactie)==='string'){nlayers[key].active=defactie;}else{nlayers[key].active=defactie[key];}
-	
-	}	
-layers=nlayers;																	
-																	}
+									}
+						}
 this.nl=[];
 this.layers=layers;
 this.w=[];				  //weights
@@ -389,19 +366,20 @@ return o.o;
 													};
 //----------------------------------------------------------------------
 Polytron.prototype.backward=function(input,target){
-var res=null;
 var len=this.layers.length-1;
+var eres=target;
+var ures=null;
 
 for(var l = len ; l >0 ;l--){
-if(this.nl[l+1]){res=this.nl[l+1];}else{res=null;}
-this.nl[l].errorSum(res,target);
+if(this.nl[l+1]){eres=this.nl[l+1];}
+this.nl[l].error(eres);
 							 }
-res=null;
 
 for(var l = len ; l >0 ;l--){
-if(this.nl[l-1]){res=this.nl[l-1];}else{res=null;}
-this.nl[l].update(res);
+if(this.nl[l-1]){ures=this.nl[l-1];}
+this.nl[l].update(ures);
   							 }
+
 														};
 //----------------------------------------------------------------------
 Polytron.prototype.mse=function(target,output){
@@ -409,7 +387,7 @@ if(!output){output=util.end(this.o);}
 var size=this.layers[this.layers.length-1].size;
     var err = 0;
     for (i = 0 ; i < size; i++) {
-      err +=  (target[i] - output[i])*(target[i] - output[i]); 
+      err +=  (target[i] - output[i]) * (target[i] - output[i]); 
     }
     err =util.end(this.layers).rate * err;
 return err;    	
@@ -427,7 +405,7 @@ Polytron.prototype.make_target=function(key){
 	};
 //----------------------------------------------------------------------
 
-Polytron.prototype.action=function(vector){ //maxout
+Polytron.prototype.action=function(vector){  //maxout
 var max=0; var sel = 0; var max = vector[sel];
 var size=this.layers[this.layers.length-1].size;
   for (var index = 1; index < size; index++) {

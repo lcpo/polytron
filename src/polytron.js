@@ -1,31 +1,19 @@
-function Polytron(layers,defrate,defactie,defmodel,defrateMax,defrateMin){
-if(Object.prototype.toString.call(layers[0])==='[object Number]'){
-var nlayers=[];
-if(!defmodel){
-	defmodel=[];
+/**
+The MIT License (MIT)
+Copyright (c) 2016 S.S.Korotaev
+*/
+
+function Polytron(layers){
 for(var key in layers){
-	if(key==0){defmodel[key]='input';}else
-	if(key==layers.length-1){defmodel[key]='output';}else{
-	defmodel[key]='hidden';	
+	if(!util.isset(layers[key]['model'])){
+	if(key==0){layers[key]['model']='input';
+	}else
+	if(key==layers.length-1){layers[key]['model']='output';
+	}else{
+	layers[key]['model']='hidden';	
 		}
-	}
-}
-
-for(var key in layers){
-	nlayers[key]={};
-	nlayers[key].size=layers[key];
-	nlayers[key].model=defmodel[key];
-	
-if(typeof(defrate)==='number'){nlayers[key].rate=defrate;}else
-if(typeof(defrate)==='string'){
-	if(defrate=='auto'){nlayers[key].rate=defrate;nlayers[key].maxrate=defrateMax;nlayers[key].minrate=defrateMin;}
-	}else{nlayers[key].rate=defrate[key];}
-
-if(typeof(defactie)==='string'){nlayers[key].active=defactie;}else{nlayers[key].active=defactie[key];}
-	
-	}	
-layers=nlayers;																	
-																	}
+									}
+						}
 this.nl=[];
 this.layers=layers;
 this.w=[];				  //weights
@@ -58,19 +46,20 @@ return o.o;
 													};
 //----------------------------------------------------------------------
 Polytron.prototype.backward=function(input,target){
-var res=null;
 var len=this.layers.length-1;
+var eres=target;
+var ures=null;
 
 for(var l = len ; l >0 ;l--){
-if(this.nl[l+1]){res=this.nl[l+1];}else{res=null;}
-this.nl[l].errorSum(res,target);
+if(this.nl[l+1]){eres=this.nl[l+1];}
+this.nl[l].error(eres);
 							 }
-res=null;
 
 for(var l = len ; l >0 ;l--){
-if(this.nl[l-1]){res=this.nl[l-1];}else{res=null;}
-this.nl[l].update(res);
+if(this.nl[l-1]){ures=this.nl[l-1];}
+this.nl[l].update(ures);
   							 }
+
 														};
 //----------------------------------------------------------------------
 Polytron.prototype.mse=function(target,output){
@@ -78,7 +67,7 @@ if(!output){output=util.end(this.o);}
 var size=this.layers[this.layers.length-1].size;
     var err = 0;
     for (i = 0 ; i < size; i++) {
-      err +=  (target[i] - output[i])*(target[i] - output[i]); 
+      err +=  (target[i] - output[i]) * (target[i] - output[i]); 
     }
     err =util.end(this.layers).rate * err;
 return err;    	
@@ -96,7 +85,7 @@ Polytron.prototype.make_target=function(key){
 	};
 //----------------------------------------------------------------------
 
-Polytron.prototype.action=function(vector){ //maxout
+Polytron.prototype.action=function(vector){  //maxout
 var max=0; var sel = 0; var max = vector[sel];
 var size=this.layers[this.layers.length-1].size;
   for (var index = 1; index < size; index++) {

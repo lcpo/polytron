@@ -3,14 +3,17 @@
 <head>
 <meta charset='utf-8'>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-<script src="../../build/polytron.js"></script>
+<script src="../src/util.js"></script>
+<script src="../src/polylayer.js"></script>
+<script src="../src/polytron.js"></script>
 <title>xor</title>
 <script type="text/javascript">
 	$(document).ready(function(){
 var timer=0;
 var t_start = Date.now();
-
+var timeout=0;
 window.interval=setInterval(function() {
+//clearInterval(window.interval);
 var layers=JSON.parse($("#template").val());
 var nn=new Polytron(layers);
 var src=$("#memory").val();
@@ -63,7 +66,10 @@ esum+=Math.abs(0.9-out);
 
 //
 $("#esum").html(esum.toFixed(13));
-//clearInterval(window.interval);
+
+
+
+
 if(esum.toFixed(14)<0.0000000000001){
 	clearInterval(window.interval);
 	var t_end = Date.now();
@@ -73,16 +79,16 @@ $("#t_scr").html(t_stime);
 
 $("#timer").html(timer);
 timer++;
-}, 10);
+}, timeout);
 });		   
 </script>
 </head>
 <body>
 	<textarea id="template" style="width: 992px;height: 104px;">
 [
-{"size":2, "model":"input",  "rate":0.0  , "active":"none"},
+{"size":2, "model":"input",  "rate":0.0,  "active":"none"},
 {"size":4, "model":"hidden", "rate":0.5, "active":"log","Xmax":50},
-{"size":1, "model":"output", "rate":0.5, "active":"relu","Xmax":2}
+{"size":1, "model":"output", "rate":0.5,  "active":"relu","Xmax":2}
 ]	
 	</textarea>
 	<br>

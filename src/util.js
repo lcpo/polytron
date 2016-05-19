@@ -1,3 +1,8 @@
+/**
+The MIT License (MIT)
+Copyright (c) 2016 S.S.Korotaev
+*/
+
 var util={};
 //----------------------------------------------------------------------
 util.end=function(arr){
@@ -16,6 +21,7 @@ if(varname==""){return true;}
 return false;	
 							};
 //----------------------------------------------------------------------
+					
 util.max=function(array,index){
    var out= Math.max.apply( Math, array );
 if(index){	

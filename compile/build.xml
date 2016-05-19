@@ -2,9 +2,9 @@
   <target name="concatenate">
     <concat destfile="../build/polytron.js" encoding="UTF-8" outputencoding="UTF-8" fixlastline="true">
       <filelist id="filelist" dir="../src">
-        <file name="util.sjs"/>
-        <file name="polylayer.sjs"/>
-        <file name="polytron.sjs" />
+        <file name="util.js"/>
+        <file name="polylayer.js"/>
+        <file name="polytron.js" />
       </filelist>
     </concat>
   </target>
