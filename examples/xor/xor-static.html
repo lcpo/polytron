@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="../../build/polytron.js"></script>
+<title>xor-static-weight</title>
+<script type="text/javascript">
+	$(document).ready(function(){
+var timer=0;
+var t_start = Date.now();
+
+window.interval=setInterval(function() {
+var layers=JSON.parse($("#template").val());
+var nn=new Polytron(layers);
+var src=$("#memory").val();
+nn.load(src);
+
+
+
+
+var inp=[];
+inp[0]={input:[0, 0],target:[0.9]};
+inp[1]={input:[0, 1],target:[0.5]};
+inp[2]={input:[1, 0],target:[0.5]};
+inp[3]={input:[1, 1],target:[0.9]};
+
+var epoh=1;
+while(epoh>0){
+for(var i=0;i<inp.length;i++){
+var out=nn.forward(inp[i].input,true);
+	nn.backward(inp[i].input,inp[i].target,true);
+	}
+epoh--;
+}	
+
+$("#memory").val(nn.toString());
+var esum=0;
+
+var out=nn.forward([0, 0]);
+$("#target1").html("0.9");
+$("#input1").html([0, 0].join());
+$("#out1").html(out);
+esum+=Math.abs(0.9-out);
+
+var out=nn.forward([0, 1]);
+$("#target2").html("0.5");
+$("#input2").html([0, 1].join());
+$("#out2").html(out);
+esum+=Math.abs(0.5-out);
+
+var out=nn.forward([1, 0]);
+$("#target3").html("0.5");
+$("#input3").html([1, 0].join());
+$("#out3").html(out);
+esum+=Math.abs(0.5-out);
+
+var out=nn.forward([1, 1]);
+$("#target4").html("0.9");
+$("#input4").html([1, 1].join());
+$("#out4").html(out);
+esum+=Math.abs(0.9-out);
+
+//
+$("#esum").html(esum.toFixed(13));
+//clearInterval(window.interval);
+if(esum.toFixed(14)<0.0000000000001){
+	clearInterval(window.interval);
+	var t_end = Date.now();
+var t_stime = t_end - t_start;
+$("#t_scr").html(t_stime);	
+	}
+
+$("#timer").html(timer);
+timer++;
+}, 0);
+});		   
+</script>
+</head>
+<body>
+	<textarea id="template" style="width: 992px;height: 104px;">
+[
+{"size":2, "model":"input",  "rate":0  , "active":"none"},
+{"size":4, "model":"hidden", "rate":0.5, "active":"log","Xmax":50},
+{"size":1, "model":"output", "rate":0.5, "active":"relu","Xmax":2}
+]	
+	</textarea>
+	<br>
+	esum:&nbsp;&nbsp;<b id="esum">0</b><br>
+	time script:&nbsp;&nbsp;<b id="t_scr">-1</b> ms
+	<hr>
+	timer:&nbsp;&nbsp;<b id="timer"></b>
+	<hr>
+	input:&nbsp;&nbsp;<b id="input1"></b>  |  out:&nbsp;&nbsp;<b id="out1"></b>  | 	target:&nbsp;&nbsp;<b id="target1"></b><br>
+	<hr>
+	input:&nbsp;&nbsp;<b id="input2"></b>  |  out:&nbsp;&nbsp;<b id="out2"></b>  | 	target:&nbsp;&nbsp;<b id="target2"></b><br>
+	<hr>
+	input:&nbsp;&nbsp;<b id="input3"></b>  |  out:&nbsp;&nbsp;<b id="out3"></b>  | 	target:&nbsp;&nbsp;<b id="target3"></b><br>
+	<hr>
+	input:&nbsp;&nbsp;<b id="input4"></b>  |  out:&nbsp;&nbsp;<b id="out4"></b>  | 	target:&nbsp;&nbsp;<b id="target4"></b><br>
+	<hr>
+
+	memory:&nbsp;&nbsp;<textarea id="memory" style="width: 927px;height: 194px;">
+	{"w":[[],[[-0.016003581130836213,0.41916157399084364,-0.1996218537549532,-0.35888456489139586],[0.07527621736954418,-0.204783149507609,-0.3453785417472013,-0.4855809423363969],[-0.002738101717476004,0.00036558997195726493,-0.002237375990410543,0.0019540587192145653]],[[-0.1789006372313781],[0.05723171965479072],[-0.1614667150931567],[0.19111627584259663],[0.05313780126178749]]],"o":[[],[0.5161815570002579,0.5532095684021419,0.3680653126584357,0.299774138118017],[0.47371996535660615]],"e":[[],[-0.005476203434952008,0.0007311799439145299,-0.004474751980821086,0.003908117438429131],[0.10627560252357499]]}
+	</textarea>
+	
+</body>
+</html>

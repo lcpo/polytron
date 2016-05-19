@@ -1,0 +1,22 @@
+<project name="Build" default="compress">
+  <target name="concatenate">
+    <concat destfile="../build/polytron.js" encoding="UTF-8" outputencoding="UTF-8" fixlastline="true">
+      <filelist id="filelist" dir="../src">
+        <file name="util.sjs"/>
+        <file name="polylayer.sjs"/>
+        <file name="polytron.sjs" />
+      </filelist>
+    </concat>
+  </target>
+  <target name="compress" depends="concatenate" description="Minify polytron.js to polytron-min.js">
+    <apply executable="java" parallel="false">
+      <filelist dir="../build" files="polytron.js" />
+      <arg line="-jar" />
+      <arg path="yuicompressor-2.4.8.jar" />
+      <srcfile />
+      <arg line="-o" />
+      <mapper type="glob" from="*.js" to="build/*-min.js" />
+      <targetfile />
+    </apply>
+  </target>
+</project>
